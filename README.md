@@ -32,7 +32,7 @@ gem install llm_bench
 
 ### Configuration
 
-Create a configuration file at `~/.llm_bench/models.yaml` or `./models.yaml`:
+Create a configuration file named `models.yaml` in your current directory, or specify a custom path with the `--config` argument:
 
 ```yaml
 prompt: "Explain the concept of machine learning in simple terms in exactly 300 words..."
@@ -59,7 +59,7 @@ providers:
 
 #### Benchmark a single model:
 ```bash
-llm_bench --provider openai --model gpt-4
+llm_bench --config ./my-config.yaml --provider openai --model gpt-4
 ```
 
 #### Benchmark all configured models:
@@ -67,15 +67,22 @@ llm_bench --provider openai --model gpt-4
 llm_bench --all
 ```
 
+#### Benchmark all models with custom config:
+```bash
+llm_bench --config ./my-config.yaml --all
+```
+
 #### Enable continuous tracking:
 ```bash
-llm_bench --all --track
+llm_bench --config ./my-config.yaml --all --track
 ```
 
 #### Print full responses:
 ```bash
-llm_bench --provider openai --model gpt-4 --print-result
+llm_bench --config ./my-config.yaml --provider openai --model gpt-4 --print-result
 ```
+
+**Note**: If no `--config` argument is provided, `llm_bench` will look for `models.yaml` in the current directory. If the configuration file is not found, an error will be displayed.
 
 ## Development
 

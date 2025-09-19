@@ -30,7 +30,7 @@ module LLMBench
 
     @config['providers'].each do |provider|
       provider['models'].each do |model|
-        benchmarks << Benchmark.new(provider['name'], model['nickname'], @print_result)
+        benchmarks << Benchmark.new(provider['name'], model['nickname'], @print_result, @config)
       end
     end
 

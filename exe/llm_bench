@@ -19,8 +19,12 @@ require 'optparse'
 def parse_arguments
   options = {}
   OptionParser.new do |opts|
-    opts.banner = "Usage: llm_bench --provider PROVIDER --model NICKNAME [--print-result]"
-    opts.banner += "\n       llm_bench --all [--track] [--print-result]"
+    opts.banner = "Usage: llm_bench --config CONFIG --provider PROVIDER --model NICKNAME [--print-result]"
+    opts.banner += "\n       llm_bench --config CONFIG --all [--track] [--print-result]"
+
+    opts.on('--config CONFIG', 'Path to configuration file (default: models.yaml)') do |config|
+      options[:config] = config
+    end
 
     opts.on('--provider PROVIDER', 'Provider name from config file') do |provider|
       options[:provider] = provider
@@ -70,17 +74,19 @@ end
 def main
   options = parse_arguments
 
+  # Determine config file path
+  config_path = options[:config] || './models.yaml'
+
+  # Validate config file exists
+  unless File.exist?(config_path)
+    puts "Error: Configuration file not found at #{config_path}"
+    exit 1
+  end
+
+  # Load configuration
+  config = YAML.load_file(config_path)
+
   if options[:all]
-    config_path = File.join(Dir.home, '.llm_bench', 'models.yaml')
-    config_path = './models.yaml' unless File.exist?(config_path)
-
-    unless File.exist?(config_path)
-      puts "Error: Configuration file not found. Expected at #{config_path}"
-      exit 1
-    end
-
-    config = YAML.load_file(config_path)
-
     if options[:track]
       tracker = LLMBench::Tracker.new(config)
       tracker.start_tracking
@@ -89,7 +95,7 @@ def main
       parallel_benchmark.run_all
     end
   else
-    benchmark = LLMBench::Benchmark.new(options[:provider], options[:model], options[:print_result])
+    benchmark = LLMBench::Benchmark.new(options[:provider], options[:model], options[:print_result], config)
     benchmark.run_benchmark
   end
 rescue StandardError => e

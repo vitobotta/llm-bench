@@ -8,11 +8,11 @@ module LLMBench
   class Benchmark
   attr_reader :config, :provider, :model, :start_time, :end_time
 
-  def initialize(provider_name, model_nickname, print_result = false)
+  def initialize(provider_name, model_nickname, print_result = false, config = nil)
     @provider_name = provider_name
     @model_nickname = model_nickname
     @print_result = print_result
-    @config = load_config
+    @config = config || load_config
     validate_provider_and_model!
   end
 

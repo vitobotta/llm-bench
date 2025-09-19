@@ -1,6 +1,5 @@
-require_relative 'llm_benchmark'
-
-class ParallelBenchmark
+module LLMBench
+  class ParallelBenchmark
   def initialize(config, print_result = false)
     @config = config
     @print_result = print_result
@@ -31,7 +30,7 @@ class ParallelBenchmark
 
     @config['providers'].each do |provider|
       provider['models'].each do |model|
-        benchmarks << LLMBenchmark.new(provider['name'], model['nickname'], @print_result)
+        benchmarks << Benchmark.new(provider['name'], model['nickname'], @print_result)
       end
     end
 
@@ -126,5 +125,6 @@ class ParallelBenchmark
     failed.each do |result|
       puts "  #{result[:provider]}/#{result[:model]}: #{result[:error]}"
     end
+  end
   end
 end

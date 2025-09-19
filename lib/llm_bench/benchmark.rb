@@ -4,7 +4,8 @@ require 'net/http'
 require 'uri'
 require 'time'
 
-class LLMBenchmark
+module LLMBench
+  class Benchmark
   attr_reader :config, :provider, :model, :start_time, :end_time
 
   def initialize(provider_name, model_nickname, print_result = false)
@@ -219,5 +220,6 @@ class LLMBenchmark
       error: e.message,
       message_content: ''
     }
+  end
   end
 end

@@ -1,20 +1,20 @@
 #!/usr/bin/env ruby
 
-require_relative 'lib/tracker'
+require 'llm_bench'
 require 'yaml'
 require 'optparse'
 
 def parse_arguments
   options = {}
   OptionParser.new do |opts|
-    opts.banner = "Usage: #{$PROGRAM_NAME} --provider PROVIDER --model NICKNAME [--print-result]"
-    opts.banner += "\n       #{$PROGRAM_NAME} --all [--track] [--print-result]"
+    opts.banner = "Usage: llm_bench --provider PROVIDER --model NICKNAME [--print-result]"
+    opts.banner += "\n       llm_bench --all [--track] [--print-result]"
 
-    opts.on('--provider PROVIDER', 'Provider name from models.yaml') do |provider|
+    opts.on('--provider PROVIDER', 'Provider name from config file') do |provider|
       options[:provider] = provider
     end
 
-    opts.on('--model NICKNAME', 'Model nickname from models.yaml') do |model|
+    opts.on('--model NICKNAME', 'Model nickname from config file') do |model|
       options[:model] = model
     end
 
@@ -59,18 +59,25 @@ def main
   options = parse_arguments
 
   if options[:all]
-    config = YAML.load_file(File.join(__dir__, 'models.yaml'))
+    config_path = File.join(Dir.home, '.llm_bench', 'models.yaml')
+    config_path = './models.yaml' unless File.exist?(config_path)
+
+    unless File.exist?(config_path)
+      puts "Error: Configuration file not found. Expected at #{config_path}"
+      exit 1
+    end
+
+    config = YAML.load_file(config_path)
 
     if options[:track]
-      tracker = Tracker.new(config)
+      tracker = LLMBench::Tracker.new(config)
       tracker.start_tracking
     else
-      parallel_benchmark = ParallelBenchmark.new(config, options[:print_result])
+      parallel_benchmark = LLMBench::ParallelBenchmark.new(config, options[:print_result])
       parallel_benchmark.run_all
     end
   else
-    require_relative 'lib/llm_benchmark'
-    benchmark = LLMBenchmark.new(options[:provider], options[:model], options[:print_result])
+    benchmark = LLMBench::Benchmark.new(options[:provider], options[:model], options[:print_result])
     benchmark.run_benchmark
   end
 rescue StandardError => e

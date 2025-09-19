@@ -1,6 +1,5 @@
-require_relative 'parallel_benchmark'
-
-class Tracker
+module LLMBench
+  class Tracker
   def initialize(config)
     @config = config
     @csv_file = "llm_benchmark_results_#{Time.now.strftime('%Y%m%d_%H%M%S')}.csv"
@@ -132,5 +131,6 @@ class Tracker
         puts "  | #{provider_col} | #{model_col} | #{tps_col} | #{tokens_col} | #{duration_col} |"
       end
     end
+  end
   end
 end

@@ -1,6 +1,18 @@
 #!/usr/bin/env ruby
 
-require 'llm_bench'
+# Add the lib directory to the load path when running from source
+if __FILE__ == $PROGRAM_NAME
+  lib_path = File.expand_path('../../lib', __FILE__)
+  $LOAD_PATH.unshift(lib_path) if File.directory?(lib_path)
+end
+
+begin
+  require 'llm_bench'
+rescue LoadError
+  # If we can't load the gem, try to load from source
+  require_relative '../lib/llm_bench'
+end
+
 require 'yaml'
 require 'optparse'
 
@@ -85,4 +97,4 @@ rescue StandardError => e
   exit 1
 end
 
-main if __FILE__ == $PROGRAM_NAME
+main

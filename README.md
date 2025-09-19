@@ -88,7 +88,7 @@ gem install ./llm_bench-0.1.0.gem
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/vito/llm-bench.
+Bug reports and pull requests are welcome on GitHub at https://github.com/vitobotta/llm-bench.
 
 ## License
 

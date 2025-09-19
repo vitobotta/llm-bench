@@ -6,11 +6,11 @@ Gem::Specification.new do |spec|
   spec.name          = "llm_bench"
   spec.version       = LLMBench::VERSION
   spec.authors       = ["Vito"]
-  spec.email         = ["vito@example.com"]
+  spec.email         = []
 
   spec.summary       = "A tool for benchmarking LLM performance across different providers and models"
   spec.description   = "LLM Bench is a Ruby gem that allows you to benchmark and compare the performance of different Large Language Model providers and APIs. It supports both OpenAI and Anthropic-compatible API formats, provides parallel execution, and includes continuous tracking capabilities with CSV export."
-  spec.homepage      = "https://github.com/vito/llm-bench"
+  spec.homepage      = "https://github.com/vitobotta/llm-bench"
   spec.license       = "MIT"
   spec.required_ruby_version = ">= 2.7.0"
 

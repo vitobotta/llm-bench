@@ -1,6 +1,6 @@
 # LLMBench
 
-A Ruby gem for benchmarking and comparing the performance of different Large Language Model providers and APIs.
+A standalone Ruby gem for benchmarking and comparing the performance of different Large Language Model providers and APIs.
 
 ## Features
 
@@ -12,21 +12,13 @@ A Ruby gem for benchmarking and comparing the performance of different Large Lan
 
 ## Installation
 
-Add this line to your application's Gemfile:
+**Important**: This is a standalone executable gem, not a library for use in other applications. Install it system-wide:
 
-```ruby
-gem 'llm_bench'
-```
-
-And then execute:
-```bash
-bundle install
-```
-
-Or install it yourself as:
 ```bash
 gem install llm_bench
 ```
+
+Do not add this gem to your application's Gemfile - it is designed to be used as a command-line tool only.
 
 ## Usage
 

@@ -11,6 +11,8 @@ A standalone Ruby gem for benchmarking and comparing the performance of differen
 
 ## Installation
 
+### Using Ruby (Recommended)
+
 **Important**: This is a standalone executable gem, not a library for use in other applications. Install it system-wide:
 
 ```bash
@@ -18,6 +20,20 @@ gem install llm_bench
 ```
 
 Do not add this gem to your application's Gemfile - it is designed to be used as a command-line tool only.
+
+### Using Docker
+
+If you don't have Ruby installed or prefer containerized environments, you can use the Docker image:
+
+```bash
+# Build the Docker image
+docker build -t llm_bench .
+
+# Or use the pre-built image
+docker pull vitobotta/llm-bench:v1
+```
+
+The Docker image includes everything needed to run `llm_bench` without installing Ruby locally.
 
 ## Usage
 
@@ -74,6 +90,29 @@ llm_bench --config ./my-config.yaml --provider openai --model gpt-4 --print-resu
 ```
 
 **Note**: If no `--config` argument is provided, `llm_bench` will look for `models.yaml` in the current directory. If the configuration file is not found, an error will be displayed.
+
+### Docker Usage
+
+When using Docker, you need to mount your configuration file and any output directories:
+
+```bash
+# Benchmark a single model with Docker
+docker run -v $(pwd)/my-config.yaml:/data/models.yaml \
+           -v $(pwd)/results:/data/results \
+           llm_bench --provider openai --model gpt-4
+
+# Benchmark all models with Docker
+docker run -v $(pwd)/models.yaml:/data/models.yaml \
+           -v $(pwd)/results:/data/results \
+           llm_bench --all
+
+# Enable continuous tracking with Docker
+docker run -v $(pwd)/models.yaml:/data/models.yaml \
+           -v $(pwd)/results:/data/results \
+           llm_bench --all --track
+```
+
+The Docker container uses `/data` as the working directory, so mount your config file to `/data/models.yaml` (or use the `--config` argument with the mounted path) and mount any directories where you want to save output files.
 
 ## Development
 

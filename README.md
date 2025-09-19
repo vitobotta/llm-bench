@@ -7,7 +7,6 @@ A standalone Ruby gem for benchmarking and comparing the performance of differen
 - Support for both OpenAI and Anthropic-compatible API formats
 - Parallel execution across multiple models and providers
 - Continuous tracking with CSV export functionality
-- Clean, modular architecture with proper gem structure
 - No external dependencies - uses only Ruby standard library
 
 ## Installation

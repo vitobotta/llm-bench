@@ -67,92 +67,114 @@ class LLMBenchmark
     calculate_and_display_metrics(response)
   end
 
-  def make_api_call
-    # Use different endpoints based on API format
-    if @model['api_format'] == 'anthropic'
-      uri = URI.parse("#{@provider['base_url']}/v1/messages")
-    else
-      uri = URI.parse("#{@provider['base_url']}/chat/completions")
-    end
+  def anthropic_format?
+    @model['api_format'] == 'anthropic'
+  end
 
+  def api_endpoint
+    anthropic_format? ? "#{@provider['base_url']}/v1/messages" : "#{@provider['base_url']}/chat/completions"
+  end
+
+  def build_request_headers
+    headers = { 'Content-Type' => 'application/json' }
+    if anthropic_format?
+      headers['x-api-key'] = @provider['api_key']
+      headers['anthropic-version'] = '2023-06-01'
+    else
+      headers['Authorization'] = "Bearer #{@provider['api_key']}"
+    end
+    headers
+  end
+
+  def build_request_body
+    base_body = {
+      model: @model['id'],
+      messages: [{ role: 'user', content: @config['prompt'] }]
+    }
+
+    if anthropic_format?
+      base_body.merge(max_tokens: 1000)
+    else
+      base_body.merge(max_tokens: 1000, temperature: 0.7)
+    end
+  end
+
+  def extract_response_content(response)
+    if anthropic_format?
+      extract_anthropic_content(response)
+    else
+      response.dig('choices', 0, 'message', 'content') || ''
+    end
+  end
+
+  def extract_token_counts(response, message_content)
+    if anthropic_format?
+      input_tokens = response.dig('usage', 'input_tokens') || estimate_tokens(@config['prompt'])
+      output_tokens = response.dig('usage', 'output_tokens') || estimate_tokens(message_content)
+    else
+      input_tokens = response.dig('usage', 'prompt_tokens') || estimate_tokens(@config['prompt'])
+      output_tokens = response.dig('usage', 'completion_tokens') || estimate_tokens(message_content)
+    end
+    [input_tokens, output_tokens]
+  end
+
+  def make_api_call
+    uri = URI.parse(api_endpoint)
     request = Net::HTTP::Post.new(uri)
     request['Content-Type'] = 'application/json'
 
-    # Set authentication headers based on API format
-    if @model['api_format'] == 'anthropic'
-      request['x-api-key'] = @provider['api_key']
-      request['anthropic-version'] = '2023-06-01'
-    else
-      request['Authorization'] = "Bearer #{@provider['api_key']}"
-    end
-
-    # Build request body based on API format
-    if @model['api_format'] == 'anthropic'
-      request.body = {
-        model: @model['id'],
-        max_tokens: 1000,
-        messages: [
-          { role: 'user', content: @config['prompt'] }
-        ]
-      }.to_json
-    else
-      request.body = {
-        model: @model['id'],
-        messages: [
-          { role: 'user', content: @config['prompt'] }
-        ],
-        max_tokens: 1000,
-        temperature: 0.7
-      }.to_json
-    end
+    build_request_headers.each { |key, value| request[key] = value }
+    request.body = build_request_body.to_json
 
     http = Net::HTTP.new(uri.host, uri.port)
     http.use_ssl = uri.scheme == 'https'
 
     response = http.request(request)
 
-    unless response.is_a?(Net::HTTPSuccess)
-      # Try to parse error response for better debugging
-      begin
-        error_response = JSON.parse(response.body)
-        error_msg = error_response.dig('msg') || error_response.dig('message') || error_response.dig('error', 'message') || response.message
-        raise "API request failed: #{response.code} - #{error_msg}"
-      rescue JSON::ParserError
-        raise "API request failed: #{response.code} #{response.message}"
-      end
-    end
+    handle_api_error(response) unless response.is_a?(Net::HTTPSuccess)
 
     JSON.parse(response.body)
   end
 
-  def calculate_and_display_metrics(response)
-    duration = @end_time - @start_time
+  def handle_api_error(response)
+    error_response = JSON.parse(response.body)
+    error_msg = error_response['msg'] || error_response['message'] ||
+                 error_response.dig('error', 'message') || response.message
+    raise "API request failed: #{response.code} - #{error_msg}"
+  rescue JSON::ParserError
+    raise "API request failed: #{response.code} #{response.message}"
+  end
 
-    # Extract tokens based on API format
-    if @model['api_format'] == 'anthropic'
-      input_tokens = response.dig('usage', 'input_tokens') || estimate_tokens(@config['prompt'])
-      output_tokens = response.dig('usage', 'output_tokens') || estimate_tokens(extract_anthropic_content(response) || '')
-      message_content = extract_anthropic_content(response) || ''
-    else
-      input_tokens = response.dig('usage', 'prompt_tokens') || estimate_tokens(@config['prompt'])
-      output_tokens = response.dig('usage', 'completion_tokens') || estimate_tokens(response.dig('choices', 0, 'message', 'content') || '')
-      message_content = response.dig('choices', 0, 'message', 'content') || ''
-    end
+  def calculate_metrics(response)
+    duration = @end_time - @start_time
+    message_content = extract_response_content(response)
+    input_tokens, output_tokens = extract_token_counts(response, message_content)
 
     total_tokens = input_tokens + output_tokens
-    tokens_per_second = total_tokens / duration if duration > 0
+    tokens_per_second = total_tokens / duration if duration.positive?
+
+    {
+      duration: duration,
+      input_tokens: input_tokens,
+      output_tokens: output_tokens,
+      total_tokens: total_tokens,
+      tokens_per_second: tokens_per_second,
+      message_content: message_content
+    }
+  end
+
+  def calculate_and_display_metrics(response)
+    metrics = calculate_metrics(response)
 
     puts "\n=== Results ==="
-    puts "Duration: #{duration.round(3)} seconds"
-    puts "Input tokens: #{input_tokens}"
-    puts "Output tokens: #{output_tokens}"
-    puts "Total tokens: #{total_tokens}"
-    puts "Tokens per second: #{tokens_per_second.round(2)}"
+    puts "Duration: #{metrics[:duration].round(3)} seconds"
+    puts "Input tokens: #{metrics[:input_tokens]}"
+    puts "Output tokens: #{metrics[:output_tokens]}"
+    puts "Total tokens: #{metrics[:total_tokens]}"
+    puts "Tokens per second: #{metrics[:tokens_per_second].round(2)}"
 
-    if @print_result
-      puts "\n=== Message Content ==="
-      puts message_content
-    end
+    puts "\n=== Message Content ==="
+    puts metrics[:message_content] if @print_result
   end
 
   def extract_anthropic_content(response)
@@ -188,32 +210,17 @@ class LLMBenchmark
     response = make_api_call
     @end_time = Time.now
 
-    duration = @end_time - @start_time
-
-    # Extract tokens and content based on API format
-    if @model['api_format'] == 'anthropic'
-      input_tokens = response.dig('usage', 'input_tokens') || estimate_tokens(@config['prompt'])
-      output_tokens = response.dig('usage', 'output_tokens') || estimate_tokens(extract_anthropic_content(response) || '')
-      message_content = extract_anthropic_content(response) || ''
-    else
-      input_tokens = response.dig('usage', 'prompt_tokens') || estimate_tokens(@config['prompt'])
-      output_tokens = response.dig('usage', 'completion_tokens') || estimate_tokens(response.dig('choices', 0, 'message', 'content') || '')
-      message_content = response.dig('choices', 0, 'message', 'content') || ''
-    end
-
-    total_tokens = input_tokens + output_tokens
-    tokens_per_second = total_tokens / duration if duration > 0
-
-    result = {
+    metrics = calculate_metrics(response)
+    {
       provider: @provider_name,
       model: @model_nickname,
-      total_tokens: total_tokens,
-      tokens_per_second: tokens_per_second.round(2),
-      duration: duration.round(3),
+      total_tokens: metrics[:total_tokens],
+      tokens_per_second: metrics[:tokens_per_second].round(2),
+      duration: metrics[:duration].round(3),
       success: true,
-      message_content: message_content
+      message_content: metrics[:message_content]
     }
-  rescue => e
+  rescue StandardError => e
     {
       provider: @provider_name,
       model: @model_nickname,

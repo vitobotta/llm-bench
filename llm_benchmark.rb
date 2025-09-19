@@ -68,7 +68,12 @@ class LLMBenchmark
   end
 
   def make_api_call
-    uri = URI.parse("#{@provider['base_url']}/chat/completions")
+    # Use different endpoints based on API format
+    if @model['api_format'] == 'anthropic'
+      uri = URI.parse("#{@provider['base_url']}/v1/messages")
+    else
+      uri = URI.parse("#{@provider['base_url']}/chat/completions")
+    end
 
     request = Net::HTTP::Post.new(uri)
     request['Content-Type'] = 'application/json'
@@ -107,7 +112,14 @@ class LLMBenchmark
     response = http.request(request)
 
     unless response.is_a?(Net::HTTPSuccess)
-      raise "API request failed: #{response.code} #{response.message}"
+      # Try to parse error response for better debugging
+      begin
+        error_response = JSON.parse(response.body)
+        error_msg = error_response.dig('msg') || error_response.dig('message') || error_response.dig('error', 'message') || response.message
+        raise "API request failed: #{response.code} - #{error_msg}"
+      rescue JSON::ParserError
+        raise "API request failed: #{response.code} #{response.message}"
+      end
     end
 
     JSON.parse(response.body)
@@ -144,8 +156,26 @@ class LLMBenchmark
   end
 
   def extract_anthropic_content(response)
-    # Anthropic API response format: content is in content[0].text
-    response.dig('content', 0, 'text')
+    # Check if this is an error response
+    if response.key?('code') && response.key?('msg') && response.key?('success')
+      return "Error: #{response['msg']}"
+    end
+
+    # Anthropic API response format: content is an array of content blocks
+    # Each block has a 'type' and 'text' field
+    content_blocks = response.dig('content')
+
+    # Handle different response formats
+    if content_blocks.is_a?(Array) && !content_blocks.empty?
+      # Standard format: content is an array of blocks
+      text_block = content_blocks.find { |block| block.is_a?(Hash) && block['type'] == 'text' }
+      text_block ? text_block['text'] : nil
+    elsif response.dig('content', 0, 'text')
+      # Fallback for different response structure
+      response.dig('content', 0, 'text')
+    else
+      nil
+    end
   end
 
   def estimate_tokens(text)

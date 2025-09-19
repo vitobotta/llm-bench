@@ -1,0 +1,57 @@
+# Configuration files with API keys
+models.yaml
+
+# Benchmark results CSV files
+*.csv
+
+# Ruby cache files
+*.rbc
+*.gem
+*.rbo
+
+# Ruby bundler
+Gemfile.lock
+.bundle
+/.bundle
+
+# Ruby temporary files
+*.tmp
+*.temp
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+*.log
+
+# Coverage reports
+coverage/
+
+# Documentation
+/doc/
+/.yardoc/
+/_yardoc/
+/.rdoc/
+/rdoc/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Temporary test files
+test_*.rb
+verify_*.rb

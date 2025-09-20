@@ -2,7 +2,7 @@
 
 module LLMBench
   class ParallelBenchmark
-    def initialize(config, print_result = false)
+    def initialize(config:, print_result: false)
       @config = config
       @print_result = print_result
     end
@@ -32,7 +32,12 @@ module LLMBench
 
       @config["providers"].each do |provider|
         provider["models"].each do |model|
-          benchmarks << Benchmark.new(provider["name"], model["nickname"], @print_result, @config)
+          benchmarks << Benchmark.new(
+            provider_name: provider["name"],
+            model_nickname: model["nickname"],
+            print_result: @print_result,
+            config: @config
+          )
         end
       end
 

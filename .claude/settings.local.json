@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(gem build:*)",
-      "Bash(gem install:*)"
+      "Bash(gem install:*)",
+      "Bash(rubocop:*)"
     ],
     "deny": [],
     "ask": []

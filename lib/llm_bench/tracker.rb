@@ -62,11 +62,11 @@ module LLMBench
       parallel_benchmark = ParallelBenchmark.new(config: @config, print_result: false)
       results = parallel_benchmark.run_silent
 
-      write_results_to_csv(timestamp, results)
-      display_cycle_summary(results)
+      write_results_to_csv(timestamp: timestamp, results: results)
+      display_cycle_summary(results: results)
     end
 
-    def write_results_to_csv(timestamp, results)
+    def write_results_to_csv(timestamp:, results:)
       File.open(@csv_file, "a") do |file|
         results.each do |result|
           next unless result[:success]
@@ -84,7 +84,7 @@ module LLMBench
       end
     end
 
-    def display_cycle_summary(results)
+    def display_cycle_summary(results:)
       successful = results.select { |r| r[:success] }
       failed = results.reject { |r| r[:success] }
 

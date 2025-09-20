@@ -14,15 +14,15 @@ module LLMBench
       puts
 
       benchmarks = create_benchmarks
-      results = run_parallel(benchmarks)
+      results = run_parallel(benchmarks: benchmarks)
 
-      display_results_table(results)
-      display_summary(results)
+      display_results_table(results: results)
+      display_summary(results: results)
     end
 
     def run_silent
       benchmarks = create_benchmarks
-      run_parallel(benchmarks)
+      run_parallel(benchmarks: benchmarks)
     end
 
     private
@@ -44,7 +44,7 @@ module LLMBench
       benchmarks
     end
 
-    def run_parallel(benchmarks)
+    def run_parallel(benchmarks:)
       results = []
       mutex = Mutex.new
 
@@ -59,7 +59,7 @@ module LLMBench
       results
     end
 
-    def display_results_table(results)
+    def display_results_table(results:)
       sorted_results = results.sort_by { |r| -r[:tokens_per_second] }
 
       provider_width = sorted_results.map { |r| r[:provider].length }.max
@@ -107,7 +107,7 @@ module LLMBench
       puts
     end
 
-    def display_summary(results)
+    def display_summary(results:)
       successful = results.select { |r| r[:success] }
       failed = results.reject { |r| r[:success] }
 

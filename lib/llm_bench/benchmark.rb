@@ -54,7 +54,7 @@ module LLMBench
       @end_time = Time.now
       puts "End time: #{@end_time.strftime("%Y-%m-%d %H:%M:%S.%3N")}"
 
-      calculate_and_display_metrics(response)
+      calculate_and_display_metrics(response: response)
     end
 
     def anthropic_format?
@@ -91,19 +91,19 @@ module LLMBench
 
     def extract_response_content(response)
       if anthropic_format?
-        extract_anthropic_content(response)
+        extract_anthropic_content(response: response)
       else
         response.dig("choices", 0, "message", "content") || ""
       end
     end
 
-    def extract_token_counts(response, message_content)
+    def extract_token_counts(response:, message_content:)
       if anthropic_format?
-        input_tokens = response.dig("usage", "input_tokens") || estimate_tokens(@config["prompt"])
-        output_tokens = response.dig("usage", "output_tokens") || estimate_tokens(message_content)
+        input_tokens = response.dig("usage", "input_tokens") || estimate_tokens(text: @config["prompt"])
+        output_tokens = response.dig("usage", "output_tokens") || estimate_tokens(text: message_content)
       else
-        input_tokens = response.dig("usage", "prompt_tokens") || estimate_tokens(@config["prompt"])
-        output_tokens = response.dig("usage", "completion_tokens") || estimate_tokens(message_content)
+        input_tokens = response.dig("usage", "prompt_tokens") || estimate_tokens(text: @config["prompt"])
+        output_tokens = response.dig("usage", "completion_tokens") || estimate_tokens(text: message_content)
       end
       [input_tokens, output_tokens]
     end
@@ -121,12 +121,12 @@ module LLMBench
 
       response = http.request(request)
 
-      handle_api_error(response) unless response.is_a?(Net::HTTPSuccess)
+      handle_api_error(response: response) unless response.is_a?(Net::HTTPSuccess)
 
       JSON.parse(response.body)
     end
 
-    def handle_api_error(response)
+    def handle_api_error(response:)
       error_response = JSON.parse(response.body)
       error_msg = error_response["msg"] || error_response["message"] ||
                   error_response.dig("error", "message") || response.message
@@ -135,10 +135,10 @@ module LLMBench
       raise "API request failed: #{response.code} #{response.message}"
     end
 
-    def calculate_metrics(response)
+    def calculate_metrics(response:)
       duration = @end_time - @start_time
       message_content = extract_response_content(response)
-      input_tokens, output_tokens = extract_token_counts(response, message_content)
+      input_tokens, output_tokens = extract_token_counts(response: response, message_content: message_content)
 
       total_tokens = input_tokens + output_tokens
       tokens_per_second = total_tokens / duration if duration.positive?
@@ -153,8 +153,8 @@ module LLMBench
       }
     end
 
-    def calculate_and_display_metrics(response)
-      metrics = calculate_metrics(response)
+    def calculate_and_display_metrics(response:)
+      metrics = calculate_metrics(response: response)
 
       puts "\n=== Results ==="
       puts "Duration: #{metrics[:duration].round(3)} seconds"
@@ -167,7 +167,7 @@ module LLMBench
       puts metrics[:message_content] if @print_result
     end
 
-    def extract_anthropic_content(response)
+    def extract_anthropic_content(response:)
       return "Error: #{response["msg"]}" if response.key?("code") && response.key?("msg") && response.key?("success")
 
       content_blocks = response["content"]
@@ -180,7 +180,7 @@ module LLMBench
       end
     end
 
-    def estimate_tokens(text)
+    def estimate_tokens(text:)
       (text.length / 4.0).round
     end
 
@@ -189,7 +189,7 @@ module LLMBench
       response = make_api_call
       @end_time = Time.now
 
-      metrics = calculate_metrics(response)
+      metrics = calculate_metrics(response: response)
       {
         provider: @provider_name,
         model: @model_nickname,

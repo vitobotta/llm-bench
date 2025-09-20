@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require_relative "colors"
+
 module LLMBench
   class Tracker
     def initialize(config_manager:)
@@ -13,10 +15,10 @@ module LLMBench
     end
 
     def start_tracking
-      puts "=== LLM Performance Tracker ==="
-      puts "Tracking all models every 60 seconds"
-      puts "Results will be saved to: #{csv_file}"
-      puts "Press Ctrl+C to stop tracking"
+      puts Colors.header("=== LLM Performance Tracker ===")
+      puts Colors.info("Tracking all models every 60 seconds")
+      puts Colors.info("Results will be saved to: #{csv_file}")
+      puts Colors.highlight("Press Ctrl+C to stop tracking")
       puts
 
       initialize_csv
@@ -35,8 +37,8 @@ module LLMBench
         end
       end
 
-      puts "\nTracking stopped by user"
-      puts "Results saved to: #{csv_file}"
+      puts "\n#{Colors.warning('Tracking stopped by user')}"
+      puts Colors.info("Results saved to: #{csv_file}")
     end
 
     private
@@ -45,12 +47,12 @@ module LLMBench
 
     def setup_signal_handlers
       Signal.trap("INT") do
-        puts "\nReceived interrupt signal, exiting immediately..."
+        puts "\n#{Colors.warning('Received interrupt signal, exiting immediately...')}"
         exit 0
       end
 
       Signal.trap("TERM") do
-        puts "\nReceived termination signal, exiting immediately..."
+        puts "\n#{Colors.warning('Received termination signal, exiting immediately...')}"
         exit 0
       end
     end
@@ -61,7 +63,7 @@ module LLMBench
 
     def run_tracking_cycle
       timestamp = Time.now
-      puts "[#{timestamp.strftime("%Y-%m-%d %H:%M:%S")}] Running benchmark cycle..."
+      puts "#{Colors.border("[#{timestamp.strftime('%Y-%m-%d %H:%M:%S')}]")} #{Colors.highlight('Running benchmark cycle...')}"
 
       parallel_benchmark = ParallelBenchmark.new(config_manager:, print_result: false)
       results = parallel_benchmark.run_silent

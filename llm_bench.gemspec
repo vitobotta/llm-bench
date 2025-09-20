@@ -34,5 +34,6 @@ Gem::Specification.new do |spec|
   spec.executables   = ["llm_bench"]
   spec.require_paths = ["lib"]
 
-  # Standard library dependencies - no external gems required
+  # Color support for enhanced output
+  spec.add_dependency "colorize", "~> 1.1"
 end

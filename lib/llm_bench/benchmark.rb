@@ -4,6 +4,7 @@ require "json"
 require "net/http"
 require "uri"
 require "time"
+require_relative "colors"
 
 module LLMBench
   class Benchmark
@@ -24,18 +25,18 @@ module LLMBench
     end
 
     def run_benchmark
-      puts "=== LLM Benchmark ==="
-      puts "Provider: #{provider_name}"
-      puts "Model: #{model_nickname} (#{model["id"]})"
-      puts "Starting benchmark..."
+      puts Colors.header("=== LLM Benchmark ===")
+      puts Colors.info("Provider: #{provider_name}")
+      puts Colors.info("Model: #{model_nickname} (#{model["id"]})")
+      puts Colors.highlight("Starting benchmark...")
 
       @start_time = Time.now
-      puts "Start time: #{start_time.strftime("%Y-%m-%d %H:%M:%S.%3N")}"
+      puts Colors.border("Start time: #{start_time.strftime("%Y-%m-%d %H:%M:%S.%3N")}")
 
       response = make_api_call
 
       @end_time = Time.now
-      puts "End time: #{end_time.strftime("%Y-%m-%d %H:%M:%S.%3N")}"
+      puts Colors.border("End time: #{end_time.strftime("%Y-%m-%d %H:%M:%S.%3N")}")
 
       calculate_and_display_metrics(response:)
     end
@@ -140,22 +141,22 @@ module LLMBench
     def calculate_and_display_metrics(response:)
       metrics = calculate_metrics(response:)
 
-      puts "\n=== Results ==="
-      puts "Duration: #{metrics[:duration].round(3)} seconds"
+      puts "\n#{Colors.header("=== Results ===")}"
+      puts Colors.metric("Duration: #{metrics[:duration].round(3)} seconds")
 
       if metrics[:input_tokens] && metrics[:output_tokens]
-        puts "Input tokens: #{metrics[:input_tokens]}"
-        puts "Output tokens: #{metrics[:output_tokens]}"
-        puts "Total tokens: #{metrics[:total_tokens]}"
-        puts "Tokens per second: #{metrics[:tokens_per_second].round(2)}"
+        puts Colors.metric("Input tokens: #{metrics[:input_tokens]}")
+        puts Colors.metric("Output tokens: #{metrics[:output_tokens]}")
+        puts Colors.success("Total tokens: #{metrics[:total_tokens]}")
+        puts Colors.success("Tokens per second: #{metrics[:tokens_per_second].round(2)}")
       else
-        puts "Token usage data not available in API response"
+        puts Colors.warning("Token usage data not available in API response")
       end
 
       return unless print_result
 
-      puts "\n=== Message Content ==="
-      puts metrics[:message_content]
+      puts "\n#{Colors.header("=== Message Content ===")}"
+      puts Colors.border(metrics[:message_content])
     end
 
     def extract_anthropic_content(response:)

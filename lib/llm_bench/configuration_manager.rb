@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "yaml"
+require_relative "colors"
 
 module LLMBench
   class ConfigurationManager
@@ -13,7 +14,7 @@ module LLMBench
 
     def load_config_from_file
       unless File.exist?(config_path)
-        warn "Error: Configuration file not found at #{config_path}"
+        warn Colors.error("Error: Configuration file not found at #{config_path}")
         exit 1
       end
 
@@ -28,7 +29,7 @@ module LLMBench
 
       [provider_config, model_config]
     rescue StandardError => e
-      warn "Error: #{e.message}"
+      warn Colors.error("Error: #{e.message}")
       exit 1
     end
 
@@ -40,7 +41,7 @@ module LLMBench
       provider_config = config["providers"].find { |p| p["name"] == provider_name }
       return provider_config if provider_config
 
-      warn "Error: Provider '#{provider_name}' not found in configuration"
+      warn Colors.error("Error: Provider '#{provider_name}' not found in configuration")
       exit 1
     end
 
@@ -48,7 +49,7 @@ module LLMBench
       model_config = provider_config["models"].find { |m| m["nickname"] == model_nickname }
       return model_config if model_config
 
-      warn "Error: Model '#{model_nickname}' not found for provider '#{provider_config["name"]}'"
+      warn Colors.error("Error: Model '#{model_nickname}' not found for provider '#{provider_config["name"]}'")
       exit 1
     end
 
@@ -58,7 +59,7 @@ module LLMBench
       valid_formats = %w[openai anthropic]
       return if valid_formats.include?(model_config["api_format"])
 
-      warn "Error: Invalid API format '#{model_config["api_format"]}' for model '#{model_config["nickname"]}'. Must be 'openai' or 'anthropic'"
+      warn Colors.error("Error: Invalid API format '#{model_config["api_format"]}' for model '#{model_config["nickname"]}'. Must be 'openai' or 'anthropic'")
       exit 1
     end
   end

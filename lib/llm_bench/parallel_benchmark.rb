@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require_relative "colors"
+
 module LLMBench
   class ParallelBenchmark
     def initialize(config_manager:, print_result: false)
@@ -11,9 +13,9 @@ module LLMBench
     end
 
     def run_all
-      puts "=== LLM Benchmark ==="
-      puts "Running benchmarks on all configured models..."
-      puts "Starting at #{Time.now.strftime("%Y-%m-%d %H:%M:%S.%3N")}"
+      puts Colors.header("=== LLM Benchmark ===")
+      puts Colors.info("Running benchmarks on all configured models...")
+      puts Colors.border("Starting at #{Time.now.strftime("%Y-%m-%d %H:%M:%S.%3N")}")
       puts
 
       benchmarks = create_benchmarks

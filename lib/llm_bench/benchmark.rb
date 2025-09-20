@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "yaml"
 require "json"
 require "net/http"
 require "uri"
@@ -8,37 +7,23 @@ require "time"
 
 module LLMBench
   class Benchmark
-    attr_reader :config, :provider, :model, :start_time, :end_time
+    attr_reader :config, :provider, :model, :start_time, :end_time, :provider_name, :model_nickname
 
     def initialize(provider_name:, model_nickname:, print_result: false, config: nil)
       @provider_name = provider_name
       @model_nickname = model_nickname
       @print_result = print_result
-      @config = config || load_config
-      validate_provider_and_model!
+
+      @config_manager = ConfigurationManager.new
+      @config = config || @config_manager.load_config
+
+      @provider, @model = @config_manager.validate_provider_and_model!(
+        config: @config,
+        provider_name: @provider_name,
+        model_nickname: @model_nickname
+      )
     end
 
-    def load_config
-      config_path = File.join(__dir__, "..", "models.yaml")
-      raise "Configuration file models.yaml not found" unless File.exist?(config_path)
-
-      YAML.load_file(config_path)
-    end
-
-    def validate_provider_and_model!
-      provider_config = @config["providers"].find { |p| p["name"] == @provider_name }
-      raise "Provider '#{@provider_name}' not found in configuration" unless provider_config
-
-      model_config = provider_config["models"].find { |m| m["nickname"] == @model_nickname }
-      raise "Model '#{@model_nickname}' not found for provider '#{@provider_name}'" unless model_config
-
-      model_config["api_format"] ||= "openai"
-
-      raise "Invalid API format '#{model_config["api_format"]}' for model '#{@model_nickname}'. Must be 'openai' or 'anthropic'" unless %w[openai anthropic].include?(model_config["api_format"])
-
-      @provider = provider_config
-      @model = model_config
-    end
 
     def run_benchmark
       puts "=== LLM Benchmark ==="

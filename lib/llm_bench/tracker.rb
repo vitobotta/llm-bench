@@ -7,6 +7,7 @@ module LLMBench
       @csv_file = "llm_benchmark_results_#{Time.now.strftime("%Y%m%d_%H%M%S")}.csv"
       @running = true
       @next_run_time = Time.now
+      @results_formatter = ResultsFormatter.new(print_result: false)
       setup_signal_handlers
     end
 
@@ -63,7 +64,7 @@ module LLMBench
       results = parallel_benchmark.run_silent
 
       write_results_to_csv(timestamp:, results:)
-      display_cycle_summary(results:)
+      @results_formatter.display_cycle_summary(results)
     end
 
     def write_results_to_csv(timestamp:, results:)
@@ -84,54 +85,5 @@ module LLMBench
       end
     end
 
-    def display_cycle_summary(results:)
-      successful = results.select { |r| r[:success] }
-      failed = results.reject { |r| r[:success] }
-
-      puts "  Completed: #{successful.length} successful, #{failed.length} failed"
-
-      if successful.any?
-        avg_tps = successful.map { |r| r[:tokens_per_second] }.sum / successful.length
-        puts "  Average tokens/sec: #{avg_tps.round(2)}"
-      end
-
-      puts "  Failed: #{failed.map { |f| "#{f[:provider]}/#{f[:model]}" }.join(", ")}" if failed.any?
-
-      puts "\n  === Individual Model Results ==="
-
-      sorted_results = results.sort_by { |r| -r[:tokens_per_second] }
-
-      provider_width = sorted_results.map { |r| r[:provider].length }.max
-      model_width = sorted_results.map { |r| r[:model].length }.max
-      tokens_width = 12
-      tps_width = 15
-      duration_width = 12
-
-      header = "  | #{"Provider".ljust(provider_width)} | #{"Model".ljust(model_width)} | " \
-               "#{"Tokens/sec".rjust(tps_width)} | #{"Total Tokens".rjust(tokens_width)} | " \
-               "#{"Duration".rjust(duration_width)} |"
-      separator = "  | #{"-" * provider_width} | #{"-" * model_width} | " \
-                  "#{"-" * tps_width} | #{"-" * tokens_width} | " \
-                  "#{"-" * duration_width} |"
-
-      puts header
-      puts separator
-
-      sorted_results.each do |result|
-        provider_col = result[:provider].ljust(provider_width)
-        model_col = result[:model].ljust(model_width)
-
-        if result[:success]
-          tps_col = result[:tokens_per_second].to_s.rjust(tps_width)
-          tokens_col = result[:total_tokens].to_s.rjust(tokens_width)
-          duration_col = "#{result[:duration]}s".rjust(duration_width)
-        else
-          tps_col = "FAILED".rjust(tps_width)
-          tokens_col = "ERROR".rjust(tokens_width)
-          duration_col = "N/A".rjust(duration_width)
-        end
-        puts "  | #{provider_col} | #{model_col} | #{tps_col} | #{tokens_col} | #{duration_col} |"
-      end
-    end
   end
 end

@@ -80,13 +80,13 @@ module LLMBench
       end
     end
 
-    def extract_token_counts(response:, message_content:)
+    def extract_token_counts(response:)
       if anthropic_format?
-        input_tokens = response.dig("usage", "input_tokens") || estimate_tokens(text: config["prompt"])
-        output_tokens = response.dig("usage", "output_tokens") || estimate_tokens(text: message_content)
+        input_tokens = response.dig("usage", "input_tokens")
+        output_tokens = response.dig("usage", "output_tokens")
       else
-        input_tokens = response.dig("usage", "prompt_tokens") || estimate_tokens(text: config["prompt"])
-        output_tokens = response.dig("usage", "completion_tokens") || estimate_tokens(text: message_content)
+        input_tokens = response.dig("usage", "prompt_tokens")
+        output_tokens = response.dig("usage", "completion_tokens")
       end
       [input_tokens, output_tokens]
     end
@@ -121,10 +121,12 @@ module LLMBench
     def calculate_metrics(response:)
       duration = end_time - start_time
       message_content = extract_response_content(response)
-      input_tokens, output_tokens = extract_token_counts(response:, message_content:)
+      input_tokens, output_tokens = extract_token_counts(response:)
 
-      total_tokens = input_tokens + output_tokens
-      tokens_per_second = total_tokens / duration if duration.positive?
+      # Only calculate totals if real token data is available
+      total_tokens = (input_tokens + output_tokens if input_tokens && output_tokens)
+
+      tokens_per_second = (total_tokens / duration if total_tokens && duration.positive?)
 
       {
         duration:,
@@ -141,10 +143,15 @@ module LLMBench
 
       puts "\n=== Results ==="
       puts "Duration: #{metrics[:duration].round(3)} seconds"
-      puts "Input tokens: #{metrics[:input_tokens]}"
-      puts "Output tokens: #{metrics[:output_tokens]}"
-      puts "Total tokens: #{metrics[:total_tokens]}"
-      puts "Tokens per second: #{metrics[:tokens_per_second].round(2)}"
+
+      if metrics[:input_tokens] && metrics[:output_tokens]
+        puts "Input tokens: #{metrics[:input_tokens]}"
+        puts "Output tokens: #{metrics[:output_tokens]}"
+        puts "Total tokens: #{metrics[:total_tokens]}"
+        puts "Tokens per second: #{metrics[:tokens_per_second].round(2)}"
+      else
+        puts "Token usage data not available in API response"
+      end
 
       return unless print_result
 
@@ -165,21 +172,18 @@ module LLMBench
       end
     end
 
-    def estimate_tokens(text:)
-      (text.length / 4.0).round
-    end
-
     def run_benchmark_for_results
       @start_time = Time.now
       response = make_api_call
       @end_time = Time.now
 
       metrics = calculate_metrics(response:)
+
       {
         provider: provider_name,
         model: model_nickname,
-        total_tokens: metrics[:total_tokens],
-        tokens_per_second: metrics[:tokens_per_second].round(2),
+        total_tokens: metrics[:total_tokens] || 0,
+        tokens_per_second: metrics[:tokens_per_second]&.round(2) || 0,
         duration: metrics[:duration].round(3),
         success: true,
         message_content: metrics[:message_content]

@@ -45,13 +45,13 @@ module LLMBench
 
     def setup_signal_handlers
       Signal.trap("INT") do
-        @running = false
-        puts "\nStopping tracking..."
+        puts "\nReceived interrupt signal, exiting immediately..."
+        exit 0
       end
 
       Signal.trap("TERM") do
-        @running = false
-        puts "\nStopping tracking..."
+        puts "\nReceived termination signal, exiting immediately..."
+        exit 0
       end
     end
 

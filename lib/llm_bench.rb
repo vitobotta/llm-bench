@@ -5,5 +5,4 @@ require_relative "llm_bench/tracker"
 
 module LLMBench
   class Error < StandardError; end
-  # Your code goes here...
 end

@@ -7,7 +7,7 @@ require "time"
 
 module LLMBench
   class Benchmark
-    attr_reader :config, :provider, :model, :start_time, :end_time, :provider_name, :model_nickname
+    attr_reader :config, :provider, :model, :start_time, :end_time, :provider_name, :model_nickname, :print_result
 
     def initialize(provider_name:, model_nickname:, config_manager:, print_result: false)
       @provider_name = provider_name

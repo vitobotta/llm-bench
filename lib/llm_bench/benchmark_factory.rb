@@ -4,14 +4,14 @@ module LLMBench
   class BenchmarkFactory
     def initialize(config_manager:, print_result: false)
       @config_manager = config_manager
-      @config = @config_manager.config
+      @config = config_manager.config
       @print_result = print_result
     end
 
     def create_all_benchmarks
       benchmarks = []
 
-      @config["providers"].each do |provider|
+      config["providers"].each do |provider|
         provider["models"].each do |model|
           benchmarks << create_benchmark(
             provider_name: provider["name"],
@@ -23,12 +23,16 @@ module LLMBench
       benchmarks
     end
 
+    private
+
+    attr_reader :print_result, :config, :config_manager
+
     def create_benchmark(provider_name:, model_nickname:)
       Benchmark.new(
         provider_name:,
         model_nickname:,
-        print_result: @print_result,
-        config_manager: @config_manager
+        print_result:,
+        config_manager:
       )
     end
   end

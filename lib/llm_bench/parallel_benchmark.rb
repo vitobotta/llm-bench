@@ -4,7 +4,7 @@ module LLMBench
   class ParallelBenchmark
     def initialize(config_manager:, print_result: false)
       @config_manager = config_manager
-      @config = @config_manager.config
+      @config = config_manager.config
       @print_result = print_result
       @benchmark_factory = BenchmarkFactory.new(config_manager:, print_result:)
       @results_formatter = ResultsFormatter.new(print_result:)
@@ -19,8 +19,8 @@ module LLMBench
       benchmarks = create_benchmarks
       results = run_parallel(benchmarks:)
 
-      @results_formatter.display_results_table(results)
-      @results_formatter.display_summary(results)
+      results_formatter.display_results_table(results)
+      results_formatter.display_summary(results)
     end
 
     def run_silent
@@ -30,8 +30,10 @@ module LLMBench
 
     private
 
+    attr_reader :print_result, :config, :config_manager, :benchmark_factory, :results_formatter
+
     def create_benchmarks
-      @benchmark_factory.create_all_benchmarks
+      benchmark_factory.create_all_benchmarks
     end
 
     def run_parallel(benchmarks:)
@@ -48,6 +50,5 @@ module LLMBench
       threads.each(&:join)
       results
     end
-
   end
 end

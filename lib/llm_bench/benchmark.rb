@@ -9,61 +9,60 @@ module LLMBench
   class Benchmark
     attr_reader :config, :provider, :model, :start_time, :end_time, :provider_name, :model_nickname
 
-    def initialize(provider_name:, model_nickname:, print_result: false, config_manager:)
+    def initialize(provider_name:, model_nickname:, config_manager:, print_result: false)
       @provider_name = provider_name
       @model_nickname = model_nickname
       @print_result = print_result
 
       @config_manager = config_manager
-      @config = @config_manager.config
+      @config = config_manager.config
 
-      @provider, @model = @config_manager.validate_provider_and_model!(
-        provider_name: @provider_name,
-        model_nickname: @model_nickname
+      @provider, @model = config_manager.validate_provider_and_model!(
+        provider_name:,
+        model_nickname:
       )
     end
 
-
     def run_benchmark
       puts "=== LLM Benchmark ==="
-      puts "Provider: #{@provider_name}"
-      puts "Model: #{@model_nickname} (#{@model["id"]})"
+      puts "Provider: #{provider_name}"
+      puts "Model: #{model_nickname} (#{model["id"]})"
       puts "Starting benchmark..."
 
       @start_time = Time.now
-      puts "Start time: #{@start_time.strftime("%Y-%m-%d %H:%M:%S.%3N")}"
+      puts "Start time: #{start_time.strftime("%Y-%m-%d %H:%M:%S.%3N")}"
 
       response = make_api_call
 
       @end_time = Time.now
-      puts "End time: #{@end_time.strftime("%Y-%m-%d %H:%M:%S.%3N")}"
+      puts "End time: #{end_time.strftime("%Y-%m-%d %H:%M:%S.%3N")}"
 
       calculate_and_display_metrics(response:)
     end
 
     def anthropic_format?
-      @model["api_format"] == "anthropic"
+      model["api_format"] == "anthropic"
     end
 
     def api_endpoint
-      anthropic_format? ? "#{@provider["base_url"]}/v1/messages" : "#{@provider["base_url"]}/chat/completions"
+      anthropic_format? ? "#{provider["base_url"]}/v1/messages" : "#{provider["base_url"]}/chat/completions"
     end
 
     def build_request_headers
       headers = { "Content-Type" => "application/json" }
       if anthropic_format?
-        headers["x-api-key"] = @provider["api_key"]
+        headers["x-api-key"] = provider["api_key"]
         headers["anthropic-version"] = "2023-06-01"
       else
-        headers["Authorization"] = "Bearer #{@provider["api_key"]}"
+        headers["Authorization"] = "Bearer #{provider["api_key"]}"
       end
       headers
     end
 
     def build_request_body
       base_body = {
-        model: @model["id"],
-        messages: [{ role: "user", content: @config["prompt"] }]
+        model: model["id"],
+        messages: [{ role: "user", content: config["prompt"] }]
       }
 
       if anthropic_format?
@@ -83,10 +82,10 @@ module LLMBench
 
     def extract_token_counts(response:, message_content:)
       if anthropic_format?
-        input_tokens = response.dig("usage", "input_tokens") || estimate_tokens(text: @config["prompt"])
+        input_tokens = response.dig("usage", "input_tokens") || estimate_tokens(text: config["prompt"])
         output_tokens = response.dig("usage", "output_tokens") || estimate_tokens(text: message_content)
       else
-        input_tokens = response.dig("usage", "prompt_tokens") || estimate_tokens(text: @config["prompt"])
+        input_tokens = response.dig("usage", "prompt_tokens") || estimate_tokens(text: config["prompt"])
         output_tokens = response.dig("usage", "completion_tokens") || estimate_tokens(text: message_content)
       end
       [input_tokens, output_tokens]
@@ -120,7 +119,7 @@ module LLMBench
     end
 
     def calculate_metrics(response:)
-      duration = @end_time - @start_time
+      duration = end_time - start_time
       message_content = extract_response_content(response)
       input_tokens, output_tokens = extract_token_counts(response:, message_content:)
 
@@ -147,8 +146,10 @@ module LLMBench
       puts "Total tokens: #{metrics[:total_tokens]}"
       puts "Tokens per second: #{metrics[:tokens_per_second].round(2)}"
 
+      return unless print_result
+
       puts "\n=== Message Content ==="
-      puts metrics[:message_content] if @print_result
+      puts metrics[:message_content]
     end
 
     def extract_anthropic_content(response:)
@@ -175,8 +176,8 @@ module LLMBench
 
       metrics = calculate_metrics(response:)
       {
-        provider: @provider_name,
-        model: @model_nickname,
+        provider: provider_name,
+        model: model_nickname,
         total_tokens: metrics[:total_tokens],
         tokens_per_second: metrics[:tokens_per_second].round(2),
         duration: metrics[:duration].round(3),
@@ -185,8 +186,8 @@ module LLMBench
       }
     rescue StandardError => e
       {
-        provider: @provider_name,
-        model: @model_nickname,
+        provider: provider_name,
+        model: model_nickname,
         total_tokens: 0,
         tokens_per_second: 0,
         duration: 0,

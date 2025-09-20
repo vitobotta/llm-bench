@@ -32,9 +32,7 @@ module LLMBench
       puts "Successful: #{successful.length}"
       puts "Failed: #{failed.length}"
 
-      if successful.any?
-        display_performance_metrics(successful)
-      end
+      display_performance_metrics(successful) if successful.any?
 
       display_failed_benchmarks(failed) if failed.any?
     end
@@ -50,24 +48,26 @@ module LLMBench
         puts "  Average tokens/sec: #{avg_tps.round(2)}"
       end
 
-      puts "  Failed: #{failed.map { |f| "#{f[:provider]}/#{f[:model]}" }.join(', ')}" if failed.any?
+      puts "  Failed: #{failed.map { |f| "#{f[:provider]}/#{f[:model]}" }.join(", ")}" if failed.any?
 
       display_individual_results(results) if results.any?
     end
 
     private
 
+    attr_reader :print_result
+
     def calculate_column_width(results, column)
       results.map { |r| r[column].length }.max
     end
 
     def build_table_header(provider_width:, model_width:, tokens_width:, tps_width:)
-      if @print_result
-        header = "| #{'Provider'.ljust(provider_width)} | #{'Model'.ljust(model_width)} | #{'Total Tokens'.rjust(tokens_width)} | #{'Tokens/sec'.rjust(tps_width)} | Message Content"
-        separator = "| #{'-' * provider_width} | #{'-' * model_width} | #{'-' * tokens_width} | #{'-' * tps_width} | #{'-' * 80}"
+      if print_result
+        header = "| #{"Provider".ljust(provider_width)} | #{"Model".ljust(model_width)} | #{"Total Tokens".rjust(tokens_width)} | #{"Tokens/sec".rjust(tps_width)} | Message Content"
+        separator = "| #{"-" * provider_width} | #{"-" * model_width} | #{"-" * tokens_width} | #{"-" * tps_width} | #{"-" * 80}"
       else
-        header = "| #{'Provider'.ljust(provider_width)} | #{'Model'.ljust(model_width)} | #{'Total Tokens'.rjust(tokens_width)} | #{'Tokens/sec'.rjust(tps_width)} |"
-        separator = "| #{'-' * provider_width} | #{'-' * model_width} | #{'-' * tokens_width} | #{'-' * tps_width} |"
+        header = "| #{"Provider".ljust(provider_width)} | #{"Model".ljust(model_width)} | #{"Total Tokens".rjust(tokens_width)} | #{"Tokens/sec".rjust(tps_width)} |"
+        separator = "| #{"-" * provider_width} | #{"-" * model_width} | #{"-" * tokens_width} | #{"-" * tps_width} |"
       end
       [header, separator]
     end
@@ -89,7 +89,7 @@ module LLMBench
       tokens_col = result[:total_tokens].to_s.rjust(tokens_width)
       tps_col = result[:tokens_per_second].to_s.rjust(tps_width)
 
-      if @print_result
+      if print_result
         message_content = result[:message_content][0..79]
         puts "| #{provider_col} | #{model_col} | #{tokens_col} | #{tps_col} | #{message_content}"
       else
@@ -101,7 +101,7 @@ module LLMBench
       tokens_col = "ERROR".rjust(tokens_width)
       tps_col = "FAILED".rjust(tps_width)
 
-      if @print_result
+      if print_result
         puts "| #{provider_col} | #{model_col} | #{tokens_col} | #{tps_col} | #{result[:error][0..79]}"
       else
         puts "| #{provider_col} | #{model_col} | #{tokens_col} | #{tps_col} |"
@@ -136,12 +136,12 @@ module LLMBench
       tps_width = 15
       duration_width = 12
 
-      header = "  | #{'Provider'.ljust(provider_width)} | #{'Model'.ljust(model_width)} | " \
-               "#{'Tokens/sec'.rjust(tps_width)} | #{'Total Tokens'.rjust(tokens_width)} | " \
-               "#{'Duration'.rjust(duration_width)} |"
-      separator = "  | #{'-' * provider_width} | #{'-' * model_width} | " \
-                  "#{'-' * tps_width} | #{'-' * tokens_width} | " \
-                  "#{'-' * duration_width} |"
+      header = "  | #{"Provider".ljust(provider_width)} | #{"Model".ljust(model_width)} | " \
+               "#{"Tokens/sec".rjust(tps_width)} | #{"Total Tokens".rjust(tokens_width)} | " \
+               "#{"Duration".rjust(duration_width)} |"
+      separator = "  | #{"-" * provider_width} | #{"-" * model_width} | " \
+                  "#{"-" * tps_width} | #{"-" * tokens_width} | " \
+                  "#{"-" * duration_width} |"
 
       puts header
       puts separator

@@ -1,11 +1,12 @@
 AllCops:
   NewCops: enable
-  TargetRubyVersion: 2.7
+  TargetRubyVersion: 3.2
+  SuggestExtensions: false
   Exclude:
     - "tmp/**/*"
     - "vendor/**/*"
+    - llm_bench.gemspec
 
-# Line length can be reasonable for CLI tool
 Layout/LineLength:
   Max: 200
 
@@ -47,3 +48,10 @@ Style/OptionalBooleanParameter:
 Lint/Void:
   Exclude:
     - "exe/llm_bench"
+
+# Configure parser settings for Ruby 3.0+ syntax
+Lint/AmbiguousOperatorPrecedence:
+  Enabled: false
+
+Style/ArgumentsForwarding:
+  Enabled: true

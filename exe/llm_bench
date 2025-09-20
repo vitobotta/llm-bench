@@ -73,16 +73,13 @@ end
 def main
   options = parse_arguments
 
-  # Determine config file path
   config_path = options[:config] || "./models.yaml"
 
-  # Validate config file exists
   unless File.exist?(config_path)
     puts "Error: Configuration file not found at #{config_path}"
     exit 1
   end
 
-  # Create configuration manager
   config_manager = LLMBench::ConfigurationManager.new(config_path:)
 
   if options[:all]

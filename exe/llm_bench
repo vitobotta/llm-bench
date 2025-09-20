@@ -87,10 +87,10 @@ def main
 
   if options[:all]
     if options[:track]
-      tracker = LLMBench::Tracker.new(config: config)
+      tracker = LLMBench::Tracker.new(config:)
       tracker.start_tracking
     else
-      parallel_benchmark = LLMBench::ParallelBenchmark.new(config: config, print_result: options[:print_result])
+      parallel_benchmark = LLMBench::ParallelBenchmark.new(config:, print_result: options[:print_result])
       parallel_benchmark.run_all
     end
   else
@@ -98,7 +98,7 @@ def main
       provider_name: options[:provider],
       model_nickname: options[:model],
       print_result: options[:print_result],
-      config: config
+      config:
     )
     benchmark.run_benchmark
   end

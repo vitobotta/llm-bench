@@ -62,8 +62,8 @@ module LLMBench
       parallel_benchmark = ParallelBenchmark.new(config: @config, print_result: false)
       results = parallel_benchmark.run_silent
 
-      write_results_to_csv(timestamp: timestamp, results: results)
-      display_cycle_summary(results: results)
+      write_results_to_csv(timestamp:, results:)
+      display_cycle_summary(results:)
     end
 
     def write_results_to_csv(timestamp:, results:)

@@ -54,7 +54,7 @@ module LLMBench
       @end_time = Time.now
       puts "End time: #{@end_time.strftime("%Y-%m-%d %H:%M:%S.%3N")}"
 
-      calculate_and_display_metrics(response: response)
+      calculate_and_display_metrics(response:)
     end
 
     def anthropic_format?
@@ -91,7 +91,7 @@ module LLMBench
 
     def extract_response_content(response)
       if anthropic_format?
-        extract_anthropic_content(response: response)
+        extract_anthropic_content(response:)
       else
         response.dig("choices", 0, "message", "content") || ""
       end
@@ -121,7 +121,7 @@ module LLMBench
 
       response = http.request(request)
 
-      handle_api_error(response: response) unless response.is_a?(Net::HTTPSuccess)
+      handle_api_error(response:) unless response.is_a?(Net::HTTPSuccess)
 
       JSON.parse(response.body)
     end
@@ -138,23 +138,23 @@ module LLMBench
     def calculate_metrics(response:)
       duration = @end_time - @start_time
       message_content = extract_response_content(response)
-      input_tokens, output_tokens = extract_token_counts(response: response, message_content: message_content)
+      input_tokens, output_tokens = extract_token_counts(response:, message_content:)
 
       total_tokens = input_tokens + output_tokens
       tokens_per_second = total_tokens / duration if duration.positive?
 
       {
-        duration: duration,
-        input_tokens: input_tokens,
-        output_tokens: output_tokens,
-        total_tokens: total_tokens,
-        tokens_per_second: tokens_per_second,
-        message_content: message_content
+        duration:,
+        input_tokens:,
+        output_tokens:,
+        total_tokens:,
+        tokens_per_second:,
+        message_content:
       }
     end
 
     def calculate_and_display_metrics(response:)
-      metrics = calculate_metrics(response: response)
+      metrics = calculate_metrics(response:)
 
       puts "\n=== Results ==="
       puts "Duration: #{metrics[:duration].round(3)} seconds"
@@ -189,7 +189,7 @@ module LLMBench
       response = make_api_call
       @end_time = Time.now
 
-      metrics = calculate_metrics(response: response)
+      metrics = calculate_metrics(response:)
       {
         provider: @provider_name,
         model: @model_nickname,

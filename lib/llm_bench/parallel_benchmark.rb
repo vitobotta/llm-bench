@@ -14,15 +14,15 @@ module LLMBench
       puts
 
       benchmarks = create_benchmarks
-      results = run_parallel(benchmarks: benchmarks)
+      results = run_parallel(benchmarks:)
 
-      display_results_table(results: results)
-      display_summary(results: results)
+      display_results_table(results:)
+      display_summary(results:)
     end
 
     def run_silent
       benchmarks = create_benchmarks
-      run_parallel(benchmarks: benchmarks)
+      run_parallel(benchmarks:)
     end
 
     private

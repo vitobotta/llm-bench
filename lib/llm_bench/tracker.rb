@@ -2,8 +2,9 @@
 
 module LLMBench
   class Tracker
-    def initialize(config:)
-      @config = config
+    def initialize(config_manager:)
+      @config_manager = config_manager
+      @config = @config_manager.config
       @csv_file = "llm_benchmark_results_#{Time.now.strftime("%Y%m%d_%H%M%S")}.csv"
       @running = true
       @next_run_time = Time.now
@@ -60,7 +61,7 @@ module LLMBench
       timestamp = Time.now
       puts "[#{timestamp.strftime("%Y-%m-%d %H:%M:%S")}] Running benchmark cycle..."
 
-      parallel_benchmark = ParallelBenchmark.new(config: @config, print_result: false)
+      parallel_benchmark = ParallelBenchmark.new(config_manager: @config_manager, print_result: false)
       results = parallel_benchmark.run_silent
 
       write_results_to_csv(timestamp:, results:)

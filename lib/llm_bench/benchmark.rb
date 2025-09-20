@@ -9,16 +9,15 @@ module LLMBench
   class Benchmark
     attr_reader :config, :provider, :model, :start_time, :end_time, :provider_name, :model_nickname
 
-    def initialize(provider_name:, model_nickname:, print_result: false, config: nil)
+    def initialize(provider_name:, model_nickname:, print_result: false, config_manager:)
       @provider_name = provider_name
       @model_nickname = model_nickname
       @print_result = print_result
 
-      @config_manager = ConfigurationManager.new
-      @config = config || @config_manager.load_config
+      @config_manager = config_manager
+      @config = @config_manager.config
 
       @provider, @model = @config_manager.validate_provider_and_model!(
-        config: @config,
         provider_name: @provider_name,
         model_nickname: @model_nickname
       )

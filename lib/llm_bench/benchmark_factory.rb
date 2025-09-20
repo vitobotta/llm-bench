@@ -2,8 +2,9 @@
 
 module LLMBench
   class BenchmarkFactory
-    def initialize(config:, print_result: false)
-      @config = config
+    def initialize(config_manager:, print_result: false)
+      @config_manager = config_manager
+      @config = @config_manager.config
       @print_result = print_result
     end
 
@@ -27,7 +28,7 @@ module LLMBench
         provider_name:,
         model_nickname:,
         print_result: @print_result,
-        config: @config
+        config_manager: @config_manager
       )
     end
   end

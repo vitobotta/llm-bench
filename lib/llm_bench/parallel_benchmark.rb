@@ -2,10 +2,11 @@
 
 module LLMBench
   class ParallelBenchmark
-    def initialize(config:, print_result: false)
-      @config = config
+    def initialize(config_manager:, print_result: false)
+      @config_manager = config_manager
+      @config = @config_manager.config
       @print_result = print_result
-      @benchmark_factory = BenchmarkFactory.new(config:, print_result:)
+      @benchmark_factory = BenchmarkFactory.new(config_manager:, print_result:)
       @results_formatter = ResultsFormatter.new(print_result:)
     end
 

@@ -6,16 +6,20 @@ module LLMBench
   class ConfigurationManager
     def initialize(config_path: nil)
       @config_path = config_path || File.join(__dir__, "..", "..", "models.yaml")
+      @config = load_config_from_file
     end
 
-    def load_config
+    def load_config_from_file
       raise "Configuration file not found at #{@config_path}" unless File.exist?(@config_path)
-
       YAML.load_file(@config_path)
     end
 
-    def validate_provider_and_model!(config:, provider_name:, model_nickname:)
-      provider_config = find_provider(config:, provider_name:)
+    def config
+      @config
+    end
+
+    def validate_provider_and_model!(provider_name:, model_nickname:)
+      provider_config = find_provider(provider_name:)
       model_config = find_model(provider_config:, model_nickname:)
 
       validate_api_format!(model_config:)
@@ -25,7 +29,7 @@ module LLMBench
 
     private
 
-    def find_provider(config:, provider_name:)
+    def find_provider(provider_name:)
       provider_config = config["providers"].find { |p| p["name"] == provider_name }
       raise "Provider '#{provider_name}' not found in configuration" unless provider_config
       provider_config

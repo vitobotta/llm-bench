@@ -2,19 +2,19 @@
 
 # Add the lib directory to the load path when running from source
 if __FILE__ == $PROGRAM_NAME
-  lib_path = File.expand_path('../../lib', __FILE__)
+  lib_path = File.expand_path("../../lib", __FILE__)
   $LOAD_PATH.unshift(lib_path) if File.directory?(lib_path)
 end
 
 begin
-  require 'llm_bench'
+  require "llm_bench"
 rescue LoadError
   # If we can't load the gem, try to load from source
-  require_relative '../lib/llm_bench'
+  require_relative "../lib/llm_bench"
 end
 
-require 'yaml'
-require 'optparse'
+require "yaml"
+require "optparse"
 
 def parse_arguments
   options = {}
@@ -22,31 +22,31 @@ def parse_arguments
     opts.banner = "Usage: llm_bench --config CONFIG --provider PROVIDER --model NICKNAME [--print-result]"
     opts.banner += "\n       llm_bench --config CONFIG --all [--track] [--print-result]"
 
-    opts.on('--config CONFIG', 'Path to configuration file (default: models.yaml)') do |config|
+    opts.on("--config CONFIG", "Path to configuration file (default: models.yaml)") do |config|
       options[:config] = config
     end
 
-    opts.on('--provider PROVIDER', 'Provider name from config file') do |provider|
+    opts.on("--provider PROVIDER", "Provider name from config file") do |provider|
       options[:provider] = provider
     end
 
-    opts.on('--model NICKNAME', 'Model nickname from config file') do |model|
+    opts.on("--model NICKNAME", "Model nickname from config file") do |model|
       options[:model] = model
     end
 
-    opts.on('--all', 'Run benchmark on all configured models') do
+    opts.on("--all", "Run benchmark on all configured models") do
       options[:all] = true
     end
 
-    opts.on('--track', 'Enable continuous tracking with CSV output (requires --all)') do
+    opts.on("--track", "Enable continuous tracking with CSV output (requires --all)") do
       options[:track] = true
     end
 
-    opts.on('--print-result', 'Print the full message returned by each LLM') do
+    opts.on("--print-result", "Print the full message returned by each LLM") do
       options[:print_result] = true
     end
 
-    opts.on('--help', 'Display help') do
+    opts.on("--help", "Display help") do
       puts opts
       exit
     end
@@ -75,7 +75,7 @@ def main
   options = parse_arguments
 
   # Determine config file path
-  config_path = options[:config] || './models.yaml'
+  config_path = options[:config] || "./models.yaml"
 
   # Validate config file exists
   unless File.exist?(config_path)

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "yaml"
 require "json"
 require "net/http"
@@ -18,29 +20,21 @@ module LLMBench
 
     def load_config
       config_path = File.join(__dir__, "..", "models.yaml")
-      unless File.exist?(config_path)
-        raise "Configuration file models.yaml not found"
-      end
+      raise "Configuration file models.yaml not found" unless File.exist?(config_path)
 
       YAML.load_file(config_path)
     end
 
     def validate_provider_and_model!
       provider_config = @config["providers"].find { |p| p["name"] == @provider_name }
-      unless provider_config
-        raise "Provider '#{@provider_name}' not found in configuration"
-      end
+      raise "Provider '#{@provider_name}' not found in configuration" unless provider_config
 
       model_config = provider_config["models"].find { |m| m["nickname"] == @model_nickname }
-      unless model_config
-        raise "Model '#{@model_nickname}' not found for provider '#{@provider_name}'"
-      end
+      raise "Model '#{@model_nickname}' not found for provider '#{@provider_name}'" unless model_config
 
       model_config["api_format"] ||= "openai"
 
-      unless ["openai", "anthropic"].include?(model_config["api_format"])
-        raise "Invalid API format '#{model_config["api_format"]}' for model '#{@model_nickname}'. Must be 'openai' or 'anthropic'"
-      end
+      raise "Invalid API format '#{model_config["api_format"]}' for model '#{@model_nickname}'. Must be 'openai' or 'anthropic'" unless %w[openai anthropic].include?(model_config["api_format"])
 
       @provider = provider_config
       @model = model_config
@@ -85,7 +79,7 @@ module LLMBench
     def build_request_body
       base_body = {
         model: @model["id"],
-        messages: [{ role: "user", content: @config["prompt"] }],
+        messages: [{ role: "user", content: @config["prompt"] }]
       }
 
       if anthropic_format?
@@ -155,7 +149,7 @@ module LLMBench
         output_tokens: output_tokens,
         total_tokens: total_tokens,
         tokens_per_second: tokens_per_second,
-        message_content: message_content,
+        message_content: message_content
       }
     end
 
@@ -174,19 +168,15 @@ module LLMBench
     end
 
     def extract_anthropic_content(response)
-      if response.key?("code") && response.key?("msg") && response.key?("success")
-        return "Error: #{response["msg"]}"
-      end
+      return "Error: #{response["msg"]}" if response.key?("code") && response.key?("msg") && response.key?("success")
 
-      content_blocks = response.dig("content")
+      content_blocks = response["content"]
 
       if content_blocks.is_a?(Array) && !content_blocks.empty?
         text_block = content_blocks.find { |block| block.is_a?(Hash) && block["type"] == "text" }
         text_block ? text_block["text"] : nil
       elsif response.dig("content", 0, "text")
         response.dig("content", 0, "text")
-      else
-        nil
       end
     end
 
@@ -207,7 +197,7 @@ module LLMBench
         tokens_per_second: metrics[:tokens_per_second].round(2),
         duration: metrics[:duration].round(3),
         success: true,
-        message_content: metrics[:message_content],
+        message_content: metrics[:message_content]
       }
     rescue StandardError => e
       {
@@ -218,7 +208,7 @@ module LLMBench
         duration: 0,
         success: false,
         error: e.message,
-        message_content: "",
+        message_content: ""
       }
     end
   end

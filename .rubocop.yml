@@ -1,0 +1,49 @@
+AllCops:
+  NewCops: enable
+  TargetRubyVersion: 2.7
+  Exclude:
+    - "tmp/**/*"
+    - "vendor/**/*"
+
+# Line length can be reasonable for CLI tool
+Layout/LineLength:
+  Max: 200
+
+# Allow longer methods for CLI tools
+Metrics/MethodLength:
+  Max: 50
+
+Metrics/AbcSize:
+  Max: 70
+
+# Allow some complexity for CLI tools
+Metrics/CyclomaticComplexity:
+  Max: 15
+
+Metrics/PerceivedComplexity:
+  Max: 15
+
+# Allow longer classes for CLI tools
+Metrics/ClassLength:
+  Max: 200
+
+# String literals - we can accept both
+Style/StringLiterals:
+  Enabled: false
+
+# Allow double quotes for consistency
+Style/StringLiteralsInInterpolation:
+  Enabled: false
+
+# Don't require documentation for small CLI tool
+Style/Documentation:
+  Enabled: false
+
+# Allow optional boolean parameters for CLI tools
+Style/OptionalBooleanParameter:
+  Enabled: false
+
+# Allow void context for returning values
+Lint/Void:
+  Exclude:
+    - "exe/llm_bench"

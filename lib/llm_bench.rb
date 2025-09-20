@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative "llm_bench/version"
 require_relative "llm_bench/benchmark"
 require_relative "llm_bench/parallel_benchmark"

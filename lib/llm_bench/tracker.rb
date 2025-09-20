@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module LLMBench
   class Tracker
     def initialize(config)
@@ -50,9 +52,7 @@ module LLMBench
     end
 
     def initialize_csv
-      File.open(@csv_file, "w") do |file|
-        file.write("timestamp,provider_model,tokens_per_second,total_tokens,duration_seconds\n")
-      end
+      File.write(@csv_file, "timestamp,provider_model,tokens_per_second,total_tokens,duration_seconds\n")
     end
 
     def run_tracking_cycle
@@ -77,8 +77,8 @@ module LLMBench
             provider_model,
             result[:tokens_per_second],
             result[:total_tokens],
-            result[:duration],
-          ].join(",") + "\n"
+            result[:duration]
+          ].join(",") << "\n"
           file.write(csv_line)
         end
       end
@@ -86,7 +86,7 @@ module LLMBench
 
     def display_cycle_summary(results)
       successful = results.select { |r| r[:success] }
-      failed = results.select { |r| !r[:success] }
+      failed = results.reject { |r| r[:success] }
 
       puts "  Completed: #{successful.length} successful, #{failed.length} failed"
 
@@ -95,9 +95,7 @@ module LLMBench
         puts "  Average tokens/sec: #{avg_tps.round(2)}"
       end
 
-      if failed.any?
-        puts "  Failed: #{failed.map { |f| "#{f[:provider]}/#{f[:model]}" }.join(", ")}"
-      end
+      puts "  Failed: #{failed.map { |f| "#{f[:provider]}/#{f[:model]}" }.join(", ")}" if failed.any?
 
       puts "\n  === Individual Model Results ==="
 
@@ -109,8 +107,12 @@ module LLMBench
       tps_width = 15
       duration_width = 12
 
-      header = "  | #{"Provider".ljust(provider_width)} | #{"Model".ljust(model_width)} | #{"Tokens/sec".rjust(tps_width)} | #{"Total Tokens".rjust(tokens_width)} | #{"Duration".rjust(duration_width)} |"
-      separator = "  | #{"-" * provider_width} | #{"-" * model_width} | #{"-" * tps_width} | #{"-" * tokens_width} | #{"-" * duration_width} |"
+      header = "  | #{"Provider".ljust(provider_width)} | #{"Model".ljust(model_width)} | " \
+               "#{"Tokens/sec".rjust(tps_width)} | #{"Total Tokens".rjust(tokens_width)} | " \
+               "#{"Duration".rjust(duration_width)} |"
+      separator = "  | #{"-" * provider_width} | #{"-" * model_width} | " \
+                  "#{"-" * tps_width} | #{"-" * tokens_width} | " \
+                  "#{"-" * duration_width} |"
 
       puts header
       puts separator
@@ -123,13 +125,12 @@ module LLMBench
           tps_col = result[:tokens_per_second].to_s.rjust(tps_width)
           tokens_col = result[:total_tokens].to_s.rjust(tokens_width)
           duration_col = "#{result[:duration]}s".rjust(duration_width)
-          puts "  | #{provider_col} | #{model_col} | #{tps_col} | #{tokens_col} | #{duration_col} |"
         else
           tps_col = "FAILED".rjust(tps_width)
           tokens_col = "ERROR".rjust(tokens_width)
           duration_col = "N/A".rjust(duration_width)
-          puts "  | #{provider_col} | #{model_col} | #{tps_col} | #{tokens_col} | #{duration_col} |"
         end
+        puts "  | #{provider_col} | #{model_col} | #{tps_col} | #{tokens_col} | #{duration_col} |"
       end
     end
   end

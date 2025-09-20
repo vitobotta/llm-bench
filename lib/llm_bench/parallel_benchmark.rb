@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module LLMBench
   class ParallelBenchmark
     def initialize(config, print_result = false)
@@ -102,7 +104,7 @@ module LLMBench
 
     def display_summary(results)
       successful = results.select { |r| r[:success] }
-      failed = results.select { |r| !r[:success] }
+      failed = results.reject { |r| r[:success] }
 
       puts "=== Summary ==="
       puts "Total benchmarks: #{results.length}"

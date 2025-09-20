@@ -1,8 +1,9 @@
 #!/usr/bin/env ruby
+# frozen_string_literal: true
 
 # Add the lib directory to the load path when running from source
 if __FILE__ == $PROGRAM_NAME
-  lib_path = File.expand_path("../../lib", __FILE__)
+  lib_path = File.expand_path('../lib', __dir__)
   $LOAD_PATH.unshift(lib_path) if File.directory?(lib_path)
 end
 
@@ -58,9 +59,7 @@ def parse_arguments
     exit 1
   end
 
-  if options[:all]
-    options
-  elsif options[:provider] && options[:model]
+  if options[:all] || (options[:provider] && options[:model])
     options
   else
     puts "Error: Either --provider and --model, or --all is required"

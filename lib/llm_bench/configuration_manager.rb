@@ -12,7 +12,10 @@ module LLMBench
     end
 
     def load_config_from_file
-      raise "Configuration file not found at #{config_path}" unless File.exist?(config_path)
+      unless File.exist?(config_path)
+        warn "Error: Configuration file not found at #{config_path}"
+        exit 1
+      end
 
       YAML.load_file(config_path)
     end
@@ -24,6 +27,9 @@ module LLMBench
       validate_api_format!(model_config:)
 
       [provider_config, model_config]
+    rescue StandardError => e
+      warn "Error: #{e.message}"
+      exit 1
     end
 
     private
@@ -32,16 +38,18 @@ module LLMBench
 
     def find_provider(provider_name:)
       provider_config = config["providers"].find { |p| p["name"] == provider_name }
-      raise "Provider '#{provider_name}' not found in configuration" unless provider_config
+      return provider_config if provider_config
 
-      provider_config
+      warn "Error: Provider '#{provider_name}' not found in configuration"
+      exit 1
     end
 
     def find_model(provider_config:, model_nickname:)
       model_config = provider_config["models"].find { |m| m["nickname"] == model_nickname }
-      raise "Model '#{model_nickname}' not found for provider '#{provider_config["name"]}'" unless model_config
+      return model_config if model_config
 
-      model_config
+      warn "Error: Model '#{model_nickname}' not found for provider '#{provider_config["name"]}'"
+      exit 1
     end
 
     def validate_api_format!(model_config:)
@@ -50,7 +58,8 @@ module LLMBench
       valid_formats = %w[openai anthropic]
       return if valid_formats.include?(model_config["api_format"])
 
-      raise "Invalid API format '#{model_config["api_format"]}' for model '#{model_config["nickname"]}'. Must be 'openai' or 'anthropic'"
+      warn "Error: Invalid API format '#{model_config["api_format"]}' for model '#{model_config["nickname"]}'. Must be 'openai' or 'anthropic'"
+      exit 1
     end
   end
 end

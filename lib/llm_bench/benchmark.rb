@@ -123,7 +123,6 @@ module LLMBench
       message_content = extract_response_content(response)
       input_tokens, output_tokens = extract_token_counts(response:)
 
-      # Only calculate totals if real token data is available
       total_tokens = (input_tokens + output_tokens if input_tokens && output_tokens)
 
       tokens_per_second = (total_tokens / duration if total_tokens && duration.positive?)

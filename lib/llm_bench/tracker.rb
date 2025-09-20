@@ -75,7 +75,7 @@ module LLMBench
         results.each do |result|
           next unless result[:success]
 
-          provider_model = "#{result[:provider]}+#{result[:model]}"
+          provider_model = "#{result[:provider]}: #{result[:model]}"
           csv_line = [
             timestamp.strftime("%Y-%m-%d %H:%M:%S"),
             provider_model,

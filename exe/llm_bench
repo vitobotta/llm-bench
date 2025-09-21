@@ -18,75 +18,100 @@ require "yaml"
 require "optparse"
 
 def parse_arguments
-  options = {}
-
   # Check for --version before other options
   if ARGV.include?("--version")
     puts "llm_bench #{LLMBench::VERSION}"
     exit
   end
 
+  options = setup_option_parser
+  validate_arguments(options)
+  options
+end
+
+def setup_option_parser
+  options = {}
+
   OptionParser.new do |opts|
-    opts.banner = "Usage: llm_bench --config CONFIG --provider PROVIDER --model NICKNAME [--print-result]"
-    opts.banner += "\n       llm_bench --config CONFIG --all [--track] [--interval-in-seconds SECONDS] [--output-file PATH] [--print-result]"
-
-    opts.on("--config CONFIG", "Path to configuration file (default: models.yaml)") do |config|
-      options[:config] = config
-    end
-
-    opts.on("--provider PROVIDER", "Provider name from config file") do |provider|
-      options[:provider] = provider
-    end
-
-    opts.on("--model NICKNAME", "Model nickname from config file") do |model|
-      options[:model] = model
-    end
-
-    opts.on("--all", "Run benchmark on all configured models") do
-      options[:all] = true
-    end
-
-    opts.on("--track", "Enable continuous tracking with CSV output (requires --all)") do
-      options[:track] = true
-    end
-
-    opts.on("--interval-in-seconds SECONDS", Integer, "Interval between tracking cycles in seconds (default: 600)") do |interval|
-      options[:interval] = interval
-    end
-
-    opts.on("--output-file PATH", "Path for the output CSV file (default: llm_benchmark_results_TIMESTAMP.csv in current directory)") do |output_file|
-      options[:output_file] = output_file
-    end
-
-    opts.on("--print-result", "Print the full message returned by each LLM") do
-      options[:print_result] = true
-    end
-
-    opts.on("--version", "Display version information") do
-      # This is handled earlier in the function
-    end
-
-    opts.on("--help", "Display help") do
-      puts opts
-      exit
-    end
+    setup_banner(opts)
+    setup_config_options(opts, options)
+    setup_benchmark_options(opts, options)
+    setup_tracking_options(opts, options)
+    setup_output_options(opts, options)
+    setup_utility_options(opts, options)
   end.parse!
 
+  options
+end
+
+def setup_banner(opts)
+  opts.banner = "Usage: llm_bench --config CONFIG --provider PROVIDER --model NICKNAME [--print-result]"
+  opts.banner += "\n       llm_bench --config CONFIG --all [--track] [--interval-in-seconds SECONDS] [--output-file PATH] [--print-result]"
+end
+
+def setup_config_options(opts, options)
+  opts.on("--config CONFIG", "Path to configuration file (default: models.yaml)") do |config|
+    options[:config] = config
+  end
+
+  opts.on("--provider PROVIDER", "Provider name from config file") do |provider|
+    options[:provider] = provider
+  end
+
+  opts.on("--model NICKNAME", "Model nickname from config file") do |model|
+    options[:model] = model
+  end
+end
+
+def setup_benchmark_options(opts, options)
+  opts.on("--all", "Run benchmark on all configured models") do
+    options[:all] = true
+  end
+
+  opts.on("--print-result", "Print the full message returned by each LLM") do
+    options[:print_result] = true
+  end
+end
+
+def setup_tracking_options(opts, options)
+  opts.on("--track", "Enable continuous tracking with CSV output (requires --all)") do
+    options[:track] = true
+  end
+
+  opts.on("--interval-in-seconds SECONDS", Integer, "Interval between tracking cycles in seconds (default: 600)") do |interval|
+    options[:interval] = interval
+  end
+end
+
+def setup_output_options(opts, options)
+  opts.on("--output-file PATH", "Path for the output CSV file (default: llm_benchmark_results_TIMESTAMP.csv in current directory)") do |output_file|
+    options[:output_file] = output_file
+  end
+end
+
+def setup_utility_options(opts, _options)
+  opts.on("--version", "Display version information") do
+    # This is handled earlier in the function
+  end
+
+  opts.on("--help", "Display help") do
+    puts opts
+    exit
+  end
+end
+
+def validate_arguments(options)
   if options[:track] && !options[:all]
     puts "Error: --track requires --all"
     puts "Use --help for usage information"
     exit 1
   end
 
-  if options[:all] || (options[:provider] && options[:model])
-    options
-  else
-    puts "Error: Either --provider and --model, or --all is required"
-    puts "Use --help for usage information"
-    exit 1
-  end
+  return if options[:all] || (options[:provider] && options[:model])
 
-  options
+  puts "Error: Either --provider and --model, or --all is required"
+  puts "Use --help for usage information"
+  exit 1
 end
 
 def main

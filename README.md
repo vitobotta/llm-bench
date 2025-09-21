@@ -30,7 +30,7 @@ If you don't have Ruby installed or prefer containerized environments, you can u
 docker build -t llm_bench .
 
 # Or use the pre-built image
-docker pull vitobotta/llm-bench:v2
+docker pull vitobotta/llm-bench:v3
 ```
 
 The Docker image includes everything needed to run `llm_bench` without installing Ruby locally.

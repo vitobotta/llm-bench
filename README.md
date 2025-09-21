@@ -99,6 +99,11 @@ llm_bench --config ./my-config.yaml --all --track --output-file ./results/benchm
 llm_bench --config ./my-config.yaml --provider openai --model gpt-4 --print-result
 ```
 
+#### Show version information:
+```bash
+llm_bench --version
+```
+
 **Note**: If no `--config` argument is provided, `llm_bench` will look for `models.yaml` in the current directory. If the configuration file is not found, an error will be displayed. When using `--track`, you can optionally specify `--interval-in-seconds` to control the frequency of benchmark cycles (default: 600 seconds) and `--output-file` to specify the CSV output path (default: llm_benchmark_results_TIMESTAMP.csv in current directory).
 
 ### Docker Usage

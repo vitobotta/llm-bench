@@ -19,6 +19,13 @@ require "optparse"
 
 def parse_arguments
   options = {}
+
+  # Check for --version before other options
+  if ARGV.include?("--version")
+    puts "llm_bench #{LLMBench::VERSION}"
+    exit
+  end
+
   OptionParser.new do |opts|
     opts.banner = "Usage: llm_bench --config CONFIG --provider PROVIDER --model NICKNAME [--print-result]"
     opts.banner += "\n       llm_bench --config CONFIG --all [--track] [--interval-in-seconds SECONDS] [--output-file PATH] [--print-result]"
@@ -53,6 +60,10 @@ def parse_arguments
 
     opts.on("--print-result", "Print the full message returned by each LLM") do
       options[:print_result] = true
+    end
+
+    opts.on("--version", "Display version information") do
+      # This is handled earlier in the function
     end
 
     opts.on("--help", "Display help") do

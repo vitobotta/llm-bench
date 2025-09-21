@@ -21,7 +21,7 @@ def parse_arguments
   options = {}
   OptionParser.new do |opts|
     opts.banner = "Usage: llm_bench --config CONFIG --provider PROVIDER --model NICKNAME [--print-result]"
-    opts.banner += "\n       llm_bench --config CONFIG --all [--track] [--interval-in-seconds SECONDS] [--print-result]"
+    opts.banner += "\n       llm_bench --config CONFIG --all [--track] [--interval-in-seconds SECONDS] [--output-file PATH] [--print-result]"
 
     opts.on("--config CONFIG", "Path to configuration file (default: models.yaml)") do |config|
       options[:config] = config
@@ -45,6 +45,10 @@ def parse_arguments
 
     opts.on("--interval-in-seconds SECONDS", Integer, "Interval between tracking cycles in seconds (default: 600)") do |interval|
       options[:interval] = interval
+    end
+
+    opts.on("--output-file PATH", "Path for the output CSV file (default: llm_benchmark_results_TIMESTAMP.csv in current directory)") do |output_file|
+      options[:output_file] = output_file
     end
 
     opts.on("--print-result", "Print the full message returned by each LLM") do
@@ -88,7 +92,7 @@ def main
 
   if options[:all]
     if options[:track]
-      tracker = LLMBench::Tracker.new(config_manager:, interval: options[:interval] || 600)
+      tracker = LLMBench::Tracker.new(config_manager:, interval: options[:interval] || 600, output_file: options[:output_file])
       tracker.start_tracking
     else
       parallel_benchmark = LLMBench::ParallelBenchmark.new(config_manager:, print_result: options[:print_result])

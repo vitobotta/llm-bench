@@ -4,10 +4,10 @@ require_relative "colors"
 
 module LLMBench
   class Tracker
-    def initialize(config_manager:, interval: 600)
+    def initialize(config_manager:, interval: 600, output_file: nil)
       @config_manager = config_manager
       @config = config_manager.config
-      @csv_file = "llm_benchmark_results_#{Time.now.strftime("%Y%m%d_%H%M%S")}.csv"
+      @csv_file = output_file || "llm_benchmark_results_#{Time.now.strftime("%Y%m%d_%H%M%S")}.csv"
       @running = true
       @next_run_time = Time.now
       @interval = interval

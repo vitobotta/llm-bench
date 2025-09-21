@@ -84,12 +84,17 @@ llm_bench --config ./my-config.yaml --all
 llm_bench --config ./my-config.yaml --all --track
 ```
 
+#### Enable continuous tracking with custom interval (default is 600 seconds):
+```bash
+llm_bench --config ./my-config.yaml --all --track --interval-in-seconds 300
+```
+
 #### Print full responses:
 ```bash
 llm_bench --config ./my-config.yaml --provider openai --model gpt-4 --print-result
 ```
 
-**Note**: If no `--config` argument is provided, `llm_bench` will look for `models.yaml` in the current directory. If the configuration file is not found, an error will be displayed.
+**Note**: If no `--config` argument is provided, `llm_bench` will look for `models.yaml` in the current directory. If the configuration file is not found, an error will be displayed. When using `--track`, you can optionally specify `--interval-in-seconds` to control the frequency of benchmark cycles (default: 600 seconds).
 
 ### Docker Usage
 
@@ -110,6 +115,11 @@ docker run -v $(pwd)/models.yaml:/data/models.yaml \
 docker run -v $(pwd)/models.yaml:/data/models.yaml \
            -v $(pwd)/results:/data/results \
            llm_bench --all --track
+
+# Enable continuous tracking with custom interval (5 minutes) using Docker
+docker run -v $(pwd)/models.yaml:/data/models.yaml \
+           -v $(pwd)/results:/data/results \
+           llm_bench --all --track --interval-in-seconds 300
 ```
 
 The Docker container uses `/data` as the working directory, so mount your config file to `/data/models.yaml` (or use the `--config` argument with the mounted path) and mount any directories where you want to save output files.

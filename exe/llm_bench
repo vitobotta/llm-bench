@@ -21,7 +21,7 @@ def parse_arguments
   options = {}
   OptionParser.new do |opts|
     opts.banner = "Usage: llm_bench --config CONFIG --provider PROVIDER --model NICKNAME [--print-result]"
-    opts.banner += "\n       llm_bench --config CONFIG --all [--track] [--print-result]"
+    opts.banner += "\n       llm_bench --config CONFIG --all [--track] [--interval-in-seconds SECONDS] [--print-result]"
 
     opts.on("--config CONFIG", "Path to configuration file (default: models.yaml)") do |config|
       options[:config] = config
@@ -41,6 +41,10 @@ def parse_arguments
 
     opts.on("--track", "Enable continuous tracking with CSV output (requires --all)") do
       options[:track] = true
+    end
+
+    opts.on("--interval-in-seconds SECONDS", Integer, "Interval between tracking cycles in seconds (default: 600)") do |interval|
+      options[:interval] = interval
     end
 
     opts.on("--print-result", "Print the full message returned by each LLM") do
@@ -84,7 +88,7 @@ def main
 
   if options[:all]
     if options[:track]
-      tracker = LLMBench::Tracker.new(config_manager:)
+      tracker = LLMBench::Tracker.new(config_manager:, interval: options[:interval] || 600)
       tracker.start_tracking
     else
       parallel_benchmark = LLMBench::ParallelBenchmark.new(config_manager:, print_result: options[:print_result])

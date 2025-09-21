@@ -4,19 +4,20 @@ require_relative "colors"
 
 module LLMBench
   class Tracker
-    def initialize(config_manager:)
+    def initialize(config_manager:, interval: 600)
       @config_manager = config_manager
       @config = config_manager.config
       @csv_file = "llm_benchmark_results_#{Time.now.strftime("%Y%m%d_%H%M%S")}.csv"
       @running = true
       @next_run_time = Time.now
+      @interval = interval
       @results_formatter = ResultsFormatter.new(print_result: false)
       setup_signal_handlers
     end
 
     def start_tracking
       puts Colors.header("=== LLM Performance Tracker ===")
-      puts Colors.info("Tracking all models every 60 seconds")
+      puts Colors.info("Tracking all models every #{interval} seconds")
       puts Colors.info("Results will be saved to: #{csv_file}")
       puts Colors.highlight("Press Ctrl+C to stop tracking")
       puts
@@ -33,7 +34,7 @@ module LLMBench
           sleep(sleep_time)
         else
           run_tracking_cycle
-          @next_run_time = Time.now + 60
+          @next_run_time = Time.now + interval
         end
       end
 
@@ -43,7 +44,7 @@ module LLMBench
 
     private
 
-    attr_reader :csv_file, :running, :next_run_time, :config, :config_manager, :results_formatter
+    attr_reader :csv_file, :running, :next_run_time, :config, :config_manager, :results_formatter, :interval
 
     def setup_signal_handlers
       Signal.trap("INT") do
